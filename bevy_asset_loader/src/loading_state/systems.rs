@@ -53,7 +53,7 @@ pub(crate) fn start_loading_collection<S: FreelyMutableState, Assets: AssetColle
     }
     let handles = LoadingAssetHandles {
         handles: Assets::load(world),
-        marker: PhantomData::<Assets>,
+        marker: PhantomData::<(S, Assets)>,
     };
     world.insert_resource(handles);
 
@@ -67,7 +67,7 @@ pub(crate) fn start_loading_collection<S: FreelyMutableState, Assets: AssetColle
 pub(crate) fn check_loading_collection<S: FreelyMutableState, Assets: AssetCollection>(
     world: &mut World,
     system_state: &mut SystemState<(
-        Option<Res<LoadingAssetHandles<Assets>>>,
+        Option<Res<LoadingAssetHandles<(S, Assets)>>>,
         Res<State<S>>,
         Res<AssetServer>,
         ResMut<AssetLoaderConfiguration<S>>,
@@ -97,13 +97,13 @@ pub(crate) fn check_loading_collection<S: FreelyMutableState, Assets: AssetColle
         if total == done {
             let asset_collection = Assets::create(world);
             world.insert_resource(asset_collection);
-            world.remove_resource::<LoadingAssetHandles<Assets>>();
+            world.remove_resource::<LoadingAssetHandles<(S, Assets)>>();
         }
     }
 }
 
 fn count_loaded_handles<S: FreelyMutableState, Assets: AssetCollection>(
-    loading_asset_handles: &LoadingAssetHandles<Assets>,
+    loading_asset_handles: &LoadingAssetHandles<(S, Assets)>,
     state: &State<S>,
     asset_server: &AssetServer,
     asset_loader_configuration: &mut AssetLoaderConfiguration<S>,
